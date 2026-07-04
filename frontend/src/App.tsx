@@ -118,7 +118,7 @@ function LoginMenu({
       {open && (
         <div className="login-dropdown">
           <div className="login-brand">
-            <span className="login-brand-mark">💙</span> 부락지
+            부락지
           </div>
           {loggedIn ? (
             <div className="profile-card">
