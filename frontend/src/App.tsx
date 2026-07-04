@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import qrImg from './assets/instagram-qr.png'
 import './App.css'
 
 // 기본 트리거: 제헌절 전날 17:00 KST. TODO: 백엔드 /api/v1/schedule (DB 관리) 연동 시 대체
 const DEFAULT_TRIGGER = '2026-07-16T17:00'
 const STORAGE_KEY = 'bulagji.triggerAt'
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ?? 'https://bulagji-backend.onrender.com'
 
 function loadTrigger(): string {
   return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_TRIGGER
@@ -79,6 +81,91 @@ function TimerModal({
   )
 }
 
+function LoginMenu({ onLogin }: { onLogin: (triggerAt: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      if (!res.ok) throw new Error('로그인에 실패했습니다.')
+      const data = await res.json()
+      if (data.triggerAt) onLogin(data.triggerAt)
+      setOpen(false)
+    } catch {
+      setError('로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="account" ref={ref}>
+      <button
+        type="button"
+        className="avatar"
+        aria-label="계정"
+        onClick={() => setOpen((v) => !v)}
+      />
+      {open && (
+        <div className="login-dropdown">
+          <div className="login-title">부락지 로그인</div>
+          <div className="login-sub">
+            로그인하면 저장한 타이머를 이 계정에서 불러옵니다.
+          </div>
+          <form onSubmit={submit}>
+            <input
+              type="text"
+              placeholder="아이디"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {error && <div className="login-error">{error}</div>}
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? '로그인 중…' : '로그인'}
+            </button>
+          </form>
+          <div className="login-divider">
+            <span>또는</span>
+          </div>
+          <a className="naver-btn" href={`${API_BASE}/oauth2/authorization/naver`}>
+            <span className="naver-logo">N</span>
+            네이버로 로그인
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function NormalScreen({
   now,
   triggerAt,
@@ -100,7 +187,7 @@ function NormalScreen({
             d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"
           />
         </svg>
-        <div className="avatar" />
+        <LoginMenu onLogin={onSetTrigger} />
       </header>
 
       <div className="google-center">
