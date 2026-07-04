@@ -113,15 +113,22 @@ function LoginMenu({
       </button>
       {open && (
         <div className="login-dropdown">
+          <div className="login-brand">
+            <span className="login-brand-mark">💙</span> 부락지
+          </div>
           {nickname ? (
-            <>
-              <div className="login-title">{nickname} 님</div>
-              <div className="login-sub">
-                이 계정의 타이머·화면 설정이 저장·동기화됩니다.
+            <div className="profile-card">
+              <div className="profile-avatar">
+                {nickname.charAt(0).toUpperCase()}
+              </div>
+              <div className="profile-name">{nickname} 님</div>
+              <div className="profile-badge">● 로그인됨</div>
+              <div className="login-sub profile-sub">
+                타이머·화면 설정이 이 계정에 저장·동기화됩니다.
               </div>
               <button
                 type="button"
-                className="login-submit"
+                className="logout-btn"
                 onClick={() => {
                   onLogout()
                   setOpen(false)
@@ -129,11 +136,30 @@ function LoginMenu({
               >
                 로그아웃
               </button>
-            </>
+            </div>
           ) : (
             <>
-              <div className="login-title">
-                {mode === 'login' ? '부락지 로그인' : '부락지 회원가입'}
+              <div className="login-tabs">
+                <button
+                  type="button"
+                  className={mode === 'login' ? 'active' : ''}
+                  onClick={() => {
+                    setMode('login')
+                    setError('')
+                  }}
+                >
+                  로그인
+                </button>
+                <button
+                  type="button"
+                  className={mode === 'signup' ? 'active' : ''}
+                  onClick={() => {
+                    setMode('signup')
+                    setError('')
+                  }}
+                >
+                  회원가입
+                </button>
               </div>
               <div className="login-sub">
                 로그인하면 저장한 타이머·화면을 이 계정에서 불러옵니다.
@@ -160,18 +186,6 @@ function LoginMenu({
                   {loading ? '처리 중…' : mode === 'login' ? '로그인' : '회원가입'}
                 </button>
               </form>
-              <button
-                type="button"
-                className="login-switch"
-                onClick={() => {
-                  setMode(mode === 'login' ? 'signup' : 'login')
-                  setError('')
-                }}
-              >
-                {mode === 'login'
-                  ? '계정이 없으신가요? 회원가입'
-                  : '이미 계정이 있으신가요? 로그인'}
-              </button>
               <div className="login-divider">
                 <span>또는</span>
               </div>
@@ -465,32 +479,73 @@ function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
   )
 }
 
+// 구글 위장 화면의 정적 배경 (전환 화면 뒤에 깔아 '내 화면 위에 떴다'는 느낌)
+function GoogleBackdrop() {
+  return (
+    <div className="google google-static">
+      <header className="google-header">
+        <a>Gmail</a>
+        <a>이미지</a>
+        <svg className="apps-icon" viewBox="0 0 24 24" width="24" height="24">
+          <path
+            fill="#e8eaed"
+            d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"
+          />
+        </svg>
+        <div className="avatar" />
+      </header>
+      <div className="google-center">
+        <div className="google-logo">Google</div>
+        <div className="google-search">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              fill="#9aa0a6"
+              d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+            />
+          </svg>
+          <input type="text" placeholder="Google에 물어보기" disabled />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ErrorScreen({ onCheckout }: { onCheckout: () => void }) {
   return (
     <main className="errscreen">
-      <div className="errbox">
-        <div className="errbox-title">
-          <span>시스템 오류</span>
-          <span className="errbox-x">✕</span>
-        </div>
-        <div className="errbox-body">
-          <div className="errbox-icon">✕</div>
-          <div>
-            <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
-            <p className="errbox-p">
-              응용 프로그램을 계속 실행할 수 없습니다.
-              <br />
-              오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
-            </p>
+      <GoogleBackdrop />
+      <div className="err-overlay">
+        {/* 뒤에 겹쳐 쌓인 느낌을 주는 데코 팝업 2개 */}
+        <div className="errbox errbox-ghost errbox-ghost2" />
+        <div className="errbox errbox-ghost errbox-ghost1" />
+        <div className="errbox">
+          <div className="errbox-title">
+            <span>⚠ 시스템 오류</span>
+            <span className="errbox-x">✕</span>
           </div>
-        </div>
-        <div className="errbox-buttons">
-          <button type="button" className="errbox-btn" onClick={onCheckout}>
-            퇴근
-          </button>
-          <button type="button" className="errbox-btn errbox-btn-ghost" disabled>
-            다시 시도
-          </button>
+          <div className="errbox-body">
+            <div className="errbox-icon">✕</div>
+            <div>
+              <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
+              <p className="errbox-p">
+                응용 프로그램을 계속 실행할 수 없습니다.
+                <br />
+                오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
+              </p>
+            </div>
+          </div>
+          <div className="errbox-buttons">
+            <button type="button" className="errbox-btn" onClick={onCheckout}>
+              퇴근
+            </button>
+            <button
+              type="button"
+              className="errbox-btn errbox-btn-ghost"
+              disabled
+            >
+              다시 시도
+            </button>
+          </div>
         </div>
       </div>
     </main>

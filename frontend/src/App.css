@@ -72,14 +72,54 @@ main {
   position: absolute;
   top: 44px;
   right: 0;
-  width: 18rem;
-  padding: 1.4rem;
-  border-radius: 1rem;
-  background: #2d2f31;
+  width: 19rem;
+  padding: 1.3rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, #34363a 0%, #2a2c2e 100%);
   color: #e8eaed;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   z-index: 10;
   text-align: left;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+
+.login-brand-mark {
+  font-size: 1.2rem;
+}
+
+.login-tabs {
+  display: flex;
+  padding: 0.25rem;
+  border-radius: 0.7rem;
+  background: #202124;
+  margin-bottom: 0.9rem;
+}
+
+.login-tabs button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #9aa0a6;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-tabs button.active {
+  background: #8ab4f8;
+  color: #202124;
 }
 
 .login-title {
@@ -88,10 +128,67 @@ main {
 }
 
 .login-sub {
-  margin: 0.35rem 0 1.1rem;
-  font-size: 0.78rem;
+  margin: 0 0 1.1rem;
+  font-size: 0.76rem;
   color: #9aa0a6;
   line-height: 1.4;
+}
+
+/* 로그인된 상태 프로필 카드 */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.4rem 0 0.2rem;
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #34a853, #0b6b2e 70%);
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 4px rgba(52, 168, 83, 0.18);
+}
+
+.profile-name {
+  margin-top: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-badge {
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  color: #81c995;
+  font-weight: 600;
+}
+
+.profile-sub {
+  margin: 0.7rem 0 1.1rem;
+  text-align: center;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #5f6368;
+  border-radius: 1.2rem;
+  background: transparent;
+  color: #e8eaed;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .login-dropdown input {
@@ -111,15 +208,20 @@ main {
   color: #f28b82;
 }
 
+.login-dropdown input:focus {
+  outline: none;
+  border-color: #8ab4f8;
+}
+
 .login-submit {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.65rem;
   border: none;
   border-radius: 1.2rem;
-  background: #8ab4f8;
-  color: #202124;
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: linear-gradient(135deg, #8ab4f8, #6ea1f5);
+  color: #10233f;
+  font-size: 0.92rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -480,23 +582,69 @@ main {
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* ── 오류 팝업창 화면 ─────────────── */
+/* ── 오류 팝업창 (구글 화면 위에 뜨는 팝업) ─────────────── */
 .errscreen {
   position: relative;
+  height: 100%;
+}
+
+.google-static {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.google-static .google-search input {
+  color: #747778;
+}
+
+.err-overlay {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #008080;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .errbox {
+  position: relative;
   width: min(30rem, 92vw);
-  border: 2px solid #808080;
-  border-radius: 2px;
-  background: #ececec;
+  border: 1px solid #adadad;
+  border-radius: 6px;
+  background: #f0f0f0;
   color: #000;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  animation: err-pop 0.18s ease-out;
+}
+
+@keyframes err-pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.errbox-ghost {
+  position: absolute;
+  height: 11rem;
+  background: #e4e4e4;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  animation: none;
+}
+
+.errbox-ghost1 {
+  transform: translate(14px, 16px);
+}
+
+.errbox-ghost2 {
+  transform: translate(28px, 32px);
+  opacity: 0.85;
 }
 
 .errbox-title {
