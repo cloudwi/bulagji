@@ -28,6 +28,10 @@ main {
   cursor: pointer;
 }
 
+.img-trigger {
+  user-select: none;
+}
+
 .apps-icon {
   cursor: pointer;
 }

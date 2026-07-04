@@ -379,7 +379,10 @@ function NormalScreen({
     <main className="google">
       <header className="google-header">
         <a>Gmail</a>
-        <a>이미지</a>
+        {/* '이미지' 링크 = 현재 선택된 화면 즉시 노출 (타이머 무관) */}
+        <a className="img-trigger" onClick={() => onPreview(screen)}>
+          이미지
+        </a>
         <svg className="apps-icon" viewBox="0 0 24 24" width="24" height="24">
           <path
             fill="#e8eaed"
