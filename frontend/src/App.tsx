@@ -8,8 +8,14 @@ const STORAGE_KEY = 'bulagji.triggerAt'
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? 'https://bulagji-backend.onrender.com'
 
+const TOKEN_KEY = 'bulagji.token'
+
 function loadTrigger(): string {
   return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_TRIGGER
+}
+
+function loadToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
 }
 
 function toLocalInputValue(d: Date): string {
@@ -305,11 +311,48 @@ function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
 function App() {
   const now = useNow()
   const [trigger, setTrigger] = useState(loadTrigger)
+  const [token, setToken] = useState<string | null>(loadToken)
   const triggerAt = new Date(trigger)
 
-  const handleSetTrigger = (v: string) => {
+  // 네이버 로그인 리다이렉트(?token=...) 처리: 토큰 저장 후 계정 타이머 불러오기
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('token')
+    if (!t) return
+    localStorage.setItem(TOKEN_KEY, t)
+    setToken(t)
+    window.history.replaceState({}, '', window.location.pathname)
+    fetch(`${API_BASE}/api/v1/me/timer`, {
+      headers: { Authorization: `Bearer ${t}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.triggerAt) {
+          localStorage.setItem(STORAGE_KEY, data.triggerAt)
+          setTrigger(data.triggerAt)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const applyTrigger = (v: string) => {
     localStorage.setItem(STORAGE_KEY, v)
     setTrigger(v)
+  }
+
+  // 타이머 저장: 로컬 저장 + 로그인 상태면 계정에도 저장
+  const handleSetTrigger = (v: string) => {
+    applyTrigger(v)
+    if (token) {
+      fetch(`${API_BASE}/api/v1/me/timer`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ triggerAt: v }),
+      }).catch(() => {})
+    }
   }
 
   // [퇴근] — 저장된 타이머를 삭제하고 기본값(D-Day)으로 되돌려 정상 화면으로 복귀
