@@ -1,29 +1,202 @@
 main {
   height: 100%;
-  font-family: 'Segoe UI', 'Segoe UI Variable', system-ui, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* ── 정상 화면 ───────────────────────────── */
+/* ── 정상 화면: 구글 새 탭 (다크) ─────────── */
 
-.normal {
+.google {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #202124;
+  font-family: arial, sans-serif;
+  overflow: hidden;
+}
+
+.google-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  padding: 1.1rem 1.4rem;
+}
+
+.google-header a {
+  color: #e8eaed;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.apps-icon {
+  cursor: pointer;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #4d5bce, #1a2a6c 70%);
+  cursor: pointer;
+}
+
+.google-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: #fff;
-  color: #222;
+  margin-top: 13vh;
+  flex: 1;
 }
 
-.normal-clock {
-  font-size: clamp(3rem, 10vw, 6rem);
-  font-weight: 200;
+.google-logo {
+  color: #e8eaed;
+  font-size: clamp(4rem, 9vw, 5.75rem);
+  font-weight: 500;
+  letter-spacing: -0.25rem;
+  font-family: 'Product Sans', arial, sans-serif;
+  margin-bottom: 2.2rem;
+}
+
+.google-search {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(43rem, 86vw);
+  height: 3.1rem;
+  padding: 0 1.2rem;
+  border-radius: 1.55rem;
+  background: #fff;
+}
+
+.google-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #202124;
+  background: transparent;
+}
+
+.google-search input::placeholder {
+  color: #747778;
+}
+
+/* ── 바로가기 자리의 타이머 설정 버튼 ─────── */
+
+.shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 14vh;
+  cursor: pointer;
+}
+
+.shortcut-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #3c4043;
+}
+
+.shortcut:hover .shortcut-circle {
+  background: #4a4e51;
+}
+
+.shortcut-label {
+  color: #e8eaed;
+  font-size: 0.8rem;
+}
+
+.countdown {
+  color: #9aa0a6;
+  font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
 }
 
-.normal-date {
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
-  color: #666;
+.customize {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 1.2rem;
+  background: #2f3033;
+  color: #c2e7ff;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* ── 타이머 설정 모달 ─────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  width: min(22rem, 88vw);
+  padding: 1.6rem;
+  border-radius: 1rem;
+  background: #2d2f31;
+  color: #e8eaed;
+}
+
+.modal h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.modal p {
+  font-size: 0.85rem;
+  color: #9aa0a6;
+  margin-bottom: 1.2rem;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #5f6368;
+  border-radius: 0.5rem;
+  background: #202124;
+  color: #e8eaed;
+  font-size: 0.95rem;
+  color-scheme: dark;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+}
+
+.modal-buttons button {
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 1.2rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.modal-cancel {
+  background: transparent;
+  color: #8ab4f8;
+}
+
+.modal-save {
+  background: #8ab4f8;
+  color: #202124;
 }
 
 /* ── 블루스크린 (Windows 10 BSOD) ─────────── */

@@ -2,8 +2,18 @@ import { useEffect, useState } from 'react'
 import qrImg from './assets/stopcode-qr.png'
 import './App.css'
 
-// TODO: 백엔드 /api/v1/schedule (DB 관리, KST) 연동 시 이 상수를 대체한다
-const TRIGGER_AT = new Date('2026-07-04T13:48:30+09:00')
+// 기본 트리거: 제헌절 전날 17:00 KST. TODO: 백엔드 /api/v1/schedule (DB 관리) 연동 시 대체
+const DEFAULT_TRIGGER = '2026-07-16T17:00'
+const STORAGE_KEY = 'bulagji.triggerAt'
+
+function loadTrigger(): string {
+  return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_TRIGGER
+}
+
+function toLocalInputValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 function useNow() {
   const [now, setNow] = useState(() => new Date())
@@ -14,24 +24,136 @@ function useNow() {
   return now
 }
 
-function NormalScreen({ now }: { now: Date }) {
+function Countdown({ now, triggerAt }: { now: Date; triggerAt: Date }) {
+  const diff = Math.max(0, triggerAt.getTime() - now.getTime())
+  const days = Math.floor(diff / 86_400_000)
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000)
+  const minutes = Math.floor((diff % 3_600_000) / 60_000)
+  const seconds = Math.floor((diff % 60_000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+
   return (
-    <main className="normal">
-      <div className="normal-clock">
-        {now.toLocaleTimeString('ko-KR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })}
+    <div className="countdown">
+      {days > 0 ? `${days}일 ` : ''}
+      {pad(hours)}:{pad(minutes)}:{pad(seconds)}
+    </div>
+  )
+}
+
+function TimerModal({
+  value,
+  onSave,
+  onClose,
+}: {
+  value: string
+  onSave: (v: string) => void
+  onClose: () => void
+}) {
+  const [draft, setDraft] = useState(value)
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>타이머 설정</h2>
+        <p>블루스크린으로 전환할 일시를 선택하세요.</p>
+        <input
+          type="datetime-local"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+        <div className="modal-buttons">
+          <button type="button" className="modal-cancel" onClick={onClose}>
+            취소
+          </button>
+          <button
+            type="button"
+            className="modal-save"
+            onClick={() => draft && onSave(draft)}
+          >
+            저장
+          </button>
+        </div>
       </div>
-      <div className="normal-date">
-        {now.toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long',
-        })}
+    </div>
+  )
+}
+
+function NormalScreen({
+  now,
+  triggerAt,
+  onSetTrigger,
+}: {
+  now: Date
+  triggerAt: Date
+  onSetTrigger: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <main className="google">
+      <header className="google-header">
+        <a>Gmail</a>
+        <a>이미지</a>
+        <svg className="apps-icon" viewBox="0 0 24 24" width="24" height="24">
+          <path
+            fill="#e8eaed"
+            d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"
+          />
+        </svg>
+        <div className="avatar" />
+      </header>
+
+      <div className="google-center">
+        <div className="google-logo">Google</div>
+        <div className="google-search">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              fill="#9aa0a6"
+              d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+            />
+          </svg>
+          <input type="text" placeholder="Google에 물어보기" aria-label="검색" />
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path
+              fill="#8ab4f8"
+              d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
+            />
+            <path
+              fill="#8ab4f8"
+              d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
+            />
+          </svg>
+        </div>
+
+        <div className="shortcut" onClick={() => setOpen(true)}>
+          <div className="shortcut-circle">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="#e8eaed" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </div>
+          <div className="shortcut-label">타이머 설정</div>
+          <Countdown now={now} triggerAt={triggerAt} />
+        </div>
       </div>
+
+      <div className="customize">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path
+            fill="#c2e7ff"
+            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+          />
+        </svg>
+        Chrome 맞춤설정
+      </div>
+
+      {open && (
+        <TimerModal
+          value={toLocalInputValue(triggerAt)}
+          onSave={(v) => {
+            onSetTrigger(v)
+            setOpen(false)
+          }}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </main>
   )
 }
@@ -75,7 +197,19 @@ function BlueScreen() {
 
 function App() {
   const now = useNow()
-  return now >= TRIGGER_AT ? <BlueScreen /> : <NormalScreen now={now} />
+  const [trigger, setTrigger] = useState(loadTrigger)
+  const triggerAt = new Date(trigger)
+
+  const handleSetTrigger = (v: string) => {
+    localStorage.setItem(STORAGE_KEY, v)
+    setTrigger(v)
+  }
+
+  return now >= triggerAt ? (
+    <BlueScreen />
+  ) : (
+    <NormalScreen now={now} triggerAt={triggerAt} onSetTrigger={handleSetTrigger} />
+  )
 }
 
 export default App
