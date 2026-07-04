@@ -508,12 +508,21 @@ main {
   background: #000;
 }
 
+.modal.info-modal {
+  width: min(32rem, 92vw);
+}
+
+.info-modal h2 {
+  margin-bottom: 0.5rem;
+}
+
 .info-sub {
-  margin-top: -0.7rem !important;
-  margin-bottom: 1.1rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.2rem !important;
   color: #8ab4f8 !important;
   font-weight: 600;
-  font-size: 0.85rem !important;
+  font-size: 0.9rem !important;
+  white-space: nowrap;
 }
 
 .info-lead {

@@ -312,7 +312,7 @@ function ScreenModal({
 function InfoModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal info-modal" onClick={(e) => e.stopPropagation()}>
         <h2>🔥 퇴근 방화벽</h2>
         <p className="info-sub">정시 퇴근을 지켜주는 방화벽</p>
         <p className="info-lead">
