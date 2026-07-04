@@ -253,3 +253,28 @@ main {
 .bsod-support {
   margin-top: 1.6rem;
 }
+
+.bsod {
+  position: relative;
+}
+
+.bsod-checkout {
+  position: absolute;
+  right: 2rem;
+  bottom: 2rem;
+  padding: 0.55rem 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 300;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.bsod-checkout:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.12);
+}

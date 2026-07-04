@@ -50,9 +50,10 @@ function TimerModal({
   onClose: () => void
 }) {
   const [draft, setDraft] = useState(value)
+  // 네이티브 달력 팝업이 모달 밖으로 펼쳐지므로 배경 클릭으로 닫지 않는다 (취소 버튼으로만 닫기)
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop">
+      <div className="modal">
         <h2>타이머 설정</h2>
         <p>블루스크린으로 전환할 일시를 선택하세요.</p>
         <input
@@ -173,7 +174,7 @@ function NormalScreen({
   )
 }
 
-function BlueScreen() {
+function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
   const [percent, setPercent] = useState(0)
   useEffect(() => {
     const id = setInterval(() => {
@@ -206,6 +207,9 @@ function BlueScreen() {
           </div>
         </div>
       </div>
+      <button type="button" className="bsod-checkout" onClick={onCheckout}>
+        퇴근
+      </button>
     </main>
   )
 }
@@ -220,8 +224,14 @@ function App() {
     setTrigger(v)
   }
 
+  // [퇴근] — 저장된 타이머를 삭제하고 기본값(D-Day)으로 되돌려 정상 화면으로 복귀
+  const handleCheckout = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    setTrigger(DEFAULT_TRIGGER)
+  }
+
   return now >= triggerAt ? (
-    <BlueScreen />
+    <BlueScreen onCheckout={handleCheckout} />
   ) : (
     <NormalScreen now={now} triggerAt={triggerAt} onSetTrigger={handleSetTrigger} />
   )
