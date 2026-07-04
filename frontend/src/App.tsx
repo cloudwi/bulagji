@@ -12,7 +12,7 @@ function loadTrigger(): string {
 
 function toLocalInputValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 function useNow() {
@@ -58,6 +58,7 @@ function TimerModal({
         <p>블루스크린으로 전환할 일시를 선택하세요.</p>
         <input
           type="datetime-local"
+          step={1}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
