@@ -3,7 +3,7 @@ import qrImg from './assets/stopcode-qr.png'
 import './App.css'
 
 // TODO: 백엔드 /api/v1/schedule (DB 관리, KST) 연동 시 이 상수를 대체한다
-const TRIGGER_AT = new Date('2026-07-04T13:50:00+09:00')
+const TRIGGER_AT = new Date('2026-07-04T13:48:30+09:00')
 
 function useNow() {
   const [now, setNow] = useState(() => new Date())
