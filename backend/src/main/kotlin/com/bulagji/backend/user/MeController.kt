@@ -12,21 +12,22 @@ import org.springframework.web.bind.annotation.RestController
 class MeController(
     private val users: UserRepository,
 ) {
-    @GetMapping("/timer")
-    fun getTimer(@AuthenticationPrincipal user: AppUser): TimerResponse =
-        TimerResponse(user.triggerAt, user.nickname)
+    @GetMapping
+    fun me(@AuthenticationPrincipal user: AppUser): MeResponse =
+        MeResponse(user.nickname, user.triggerAt, user.screen)
 
-    @PutMapping("/timer")
-    fun saveTimer(
+    @PutMapping("/settings")
+    fun saveSettings(
         @AuthenticationPrincipal user: AppUser,
-        @RequestBody body: TimerRequest,
-    ): TimerResponse {
-        user.triggerAt = body.triggerAt
+        @RequestBody body: SettingsRequest,
+    ): MeResponse {
+        if (body.triggerAt != null) user.triggerAt = body.triggerAt
+        if (body.screen != null) user.screen = body.screen
         users.save(user)
-        return TimerResponse(user.triggerAt, user.nickname)
+        return MeResponse(user.nickname, user.triggerAt, user.screen)
     }
 }
 
-data class TimerResponse(val triggerAt: String?, val nickname: String?)
+data class MeResponse(val nickname: String?, val triggerAt: String?, val screen: String)
 
-data class TimerRequest(val triggerAt: String?)
+data class SettingsRequest(val triggerAt: String?, val screen: String?)

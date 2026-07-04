@@ -37,12 +37,34 @@ main {
 }
 
 .avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #4d5bce, #1a2a6c 70%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.avatar-in {
+  background: radial-gradient(circle at 30% 30%, #34a853, #0b6b2e 70%);
+  box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.35);
+}
+
+.login-switch {
+  width: 100%;
+  margin-top: 0.7rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8ab4f8;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
@@ -187,12 +209,17 @@ main {
 
 /* ── 바로가기 자리의 타이머 설정 버튼 ─────── */
 
+.shortcuts {
+  display: flex;
+  gap: 3rem;
+  margin-top: 14vh;
+}
+
 .shortcut {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.55rem;
-  margin-top: 14vh;
   cursor: pointer;
 }
 
@@ -278,6 +305,76 @@ main {
   color-scheme: dark;
 }
 
+.modal-wide {
+  width: min(34rem, 92vw);
+}
+
+.screen-options {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.screen-option {
+  flex: 1;
+  padding: 0.6rem;
+  border: 2px solid #5f6368;
+  border-radius: 0.7rem;
+  background: #202124;
+  color: #e8eaed;
+  cursor: pointer;
+  text-align: center;
+}
+
+.screen-option.selected {
+  border-color: #8ab4f8;
+}
+
+.screen-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 4.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.4rem;
+  overflow: hidden;
+}
+
+.thumb-bsod {
+  background: #0078d7;
+}
+
+.thumb-face {
+  color: #fff;
+  font-size: 1.8rem;
+}
+
+.thumb-error {
+  background: #c7c7c7;
+}
+
+.thumb-x {
+  color: #d32f2f;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.screen-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.screen-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.screen-desc {
+  font-size: 0.72rem;
+  color: #9aa0a6;
+}
+
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
@@ -361,23 +458,128 @@ main {
   position: relative;
 }
 
-.bsod-checkout {
+.exit-btn {
   position: absolute;
   right: 2rem;
   bottom: 2rem;
   padding: 0.55rem 1.6rem;
   border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 2px;
-  background: transparent;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
   color: #fff;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 300;
+  font-weight: 400;
   cursor: pointer;
-  opacity: 0.55;
+  opacity: 0.6;
+  z-index: 5;
 }
 
-.bsod-checkout:hover {
+.exit-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* ── 오류 팝업창 화면 ─────────────── */
+.errscreen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #008080;
+}
+
+.errbox {
+  width: min(30rem, 92vw);
+  border: 2px solid #808080;
+  border-radius: 2px;
+  background: #ececec;
+  color: #000;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.errbox-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.7rem;
+  background: linear-gradient(#0a5bd0, #0847a8);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.errbox-x {
+  padding: 0 0.4rem;
+  background: #c0392b;
+}
+
+.errbox-body {
+  display: flex;
+  gap: 1rem;
+  padding: 1.4rem 1.2rem;
+}
+
+.errbox-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: #d32f2f;
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.errbox-h {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.errbox-p {
+  font-size: 0.85rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.errbox-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0 1.2rem 1.2rem;
+}
+
+.errbox-btn {
+  min-width: 5rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid #707070;
+  border-radius: 2px;
+  background: #e0e0e0;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.errbox-btn-ghost {
+  color: #999;
+  cursor: default;
+}
+
+/* ── 밈 화면 ─────────────── */
+.memescreen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.memescreen img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }

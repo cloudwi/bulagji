@@ -1,27 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import qrImg from './assets/instagram-qr.png'
+import memeImg from './assets/meme.webp'
 import './App.css'
 
-// 기본 트리거: 제헌절 전날 17:00 KST. TODO: 백엔드 /api/v1/schedule (DB 관리) 연동 시 대체
+// 기본 트리거: 제헌절 전날 17:00 KST. 로그인하면 계정에 저장된 값으로 대체됨
 const DEFAULT_TRIGGER = '2026-07-16T17:00'
 const STORAGE_KEY = 'bulagji.triggerAt'
+const SCREEN_KEY = 'bulagji.screen'
+const TOKEN_KEY = 'bulagji.token'
+const NICK_KEY = 'bulagji.nickname'
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? 'https://bulagji-backend.onrender.com'
 
-const TOKEN_KEY = 'bulagji.token'
-
-function loadTrigger(): string {
-  return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_TRIGGER
-}
-
-function loadToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
-}
-
-function toLocalInputValue(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-}
+type ScreenType = 'bsod' | 'error' | 'meme'
 
 function useNow() {
   const [now, setNow] = useState(() => new Date())
@@ -32,6 +23,11 @@ function useNow() {
   return now
 }
 
+function toLocalInputValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
 function Countdown({ now, triggerAt }: { now: Date; triggerAt: Date }) {
   const diff = Math.max(0, triggerAt.getTime() - now.getTime())
   const days = Math.floor(diff / 86_400_000)
@@ -39,7 +35,6 @@ function Countdown({ now, triggerAt }: { now: Date; triggerAt: Date }) {
   const minutes = Math.floor((diff % 3_600_000) / 60_000)
   const seconds = Math.floor((diff % 60_000) / 1000)
   const pad = (n: number) => String(n).padStart(2, '0')
-
   return (
     <div className="countdown">
       {days > 0 ? `${days}일 ` : ''}
@@ -48,6 +43,154 @@ function Countdown({ now, triggerAt }: { now: Date; triggerAt: Date }) {
   )
 }
 
+// ── 로그인 / 회원가입 드롭다운 ──────────────────────────
+function LoginMenu({
+  nickname,
+  onAuth,
+  onLogout,
+}: {
+  nickname: string | null
+  onAuth: (r: {
+    token: string
+    nickname: string | null
+    triggerAt: string | null
+    screen: string
+  }) => void
+  onLogout: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      if (!res.ok) {
+        const msg = await res.json().catch(() => null)
+        throw new Error(msg?.message ?? '요청에 실패했습니다.')
+      }
+      const data = await res.json()
+      onAuth(data)
+      setOpen(false)
+      setUsername('')
+      setPassword('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '요청에 실패했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="account" ref={ref}>
+      <button
+        type="button"
+        className={`avatar${nickname ? ' avatar-in' : ''}`}
+        aria-label="계정"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {nickname ? nickname.charAt(0).toUpperCase() : ''}
+      </button>
+      {open && (
+        <div className="login-dropdown">
+          {nickname ? (
+            <>
+              <div className="login-title">{nickname} 님</div>
+              <div className="login-sub">
+                이 계정의 타이머·화면 설정이 저장·동기화됩니다.
+              </div>
+              <button
+                type="button"
+                className="login-submit"
+                onClick={() => {
+                  onLogout()
+                  setOpen(false)
+                }}
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="login-title">
+                {mode === 'login' ? '부락지 로그인' : '부락지 회원가입'}
+              </div>
+              <div className="login-sub">
+                로그인하면 저장한 타이머·화면을 이 계정에서 불러옵니다.
+              </div>
+              <form onSubmit={submit}>
+                <input
+                  type="text"
+                  placeholder="아이디"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="비밀번호"
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                {error && <div className="login-error">{error}</div>}
+                <button type="submit" className="login-submit" disabled={loading}>
+                  {loading ? '처리 중…' : mode === 'login' ? '로그인' : '회원가입'}
+                </button>
+              </form>
+              <button
+                type="button"
+                className="login-switch"
+                onClick={() => {
+                  setMode(mode === 'login' ? 'signup' : 'login')
+                  setError('')
+                }}
+              >
+                {mode === 'login'
+                  ? '계정이 없으신가요? 회원가입'
+                  : '이미 계정이 있으신가요? 로그인'}
+              </button>
+              <div className="login-divider">
+                <span>또는</span>
+              </div>
+              <a
+                className="naver-btn"
+                href={`${API_BASE}/oauth2/authorization/naver`}
+              >
+                <span className="naver-logo">N</span>
+                네이버로 로그인
+              </a>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── 타이머 설정 모달 ──────────────────────────
 function TimerModal({
   value,
   onSave,
@@ -58,12 +201,11 @@ function TimerModal({
   onClose: () => void
 }) {
   const [draft, setDraft] = useState(value)
-  // 네이티브 달력 팝업이 모달 밖으로 펼쳐지므로 배경 클릭으로 닫지 않는다 (취소 버튼으로만 닫기)
   return (
     <div className="modal-backdrop">
       <div className="modal">
         <h2>타이머 설정</h2>
-        <p>블루스크린으로 전환할 일시를 선택하세요.</p>
+        <p>지정한 화면으로 전환할 일시를 선택하세요.</p>
         <input
           type="datetime-local"
           step={1}
@@ -87,101 +229,90 @@ function TimerModal({
   )
 }
 
-function LoginMenu({ onLogin }: { onLogin: (triggerAt: string) => void }) {
-  const [open, setOpen] = useState(false)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+// ── 화면 선택 모달 ──────────────────────────
+const SCREEN_OPTIONS: { key: ScreenType; label: string; desc: string }[] = [
+  { key: 'bsod', label: '블루스크린', desc: 'Windows 오류 전체화면' },
+  { key: 'error', label: '오류 팝업창', desc: '치명적 오류 대화상자' },
+  { key: 'meme', label: '밈 화면', desc: '아유… 하기 싫어…' },
+]
 
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [open])
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      if (!res.ok) throw new Error('로그인에 실패했습니다.')
-      const data = await res.json()
-      if (data.triggerAt) onLogin(data.triggerAt)
-      setOpen(false)
-    } catch {
-      setError('로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
+function ScreenModal({
+  value,
+  onSave,
+  onClose,
+}: {
+  value: ScreenType
+  onSave: (v: ScreenType) => void
+  onClose: () => void
+}) {
+  const [draft, setDraft] = useState<ScreenType>(value)
   return (
-    <div className="account" ref={ref}>
-      <button
-        type="button"
-        className="avatar"
-        aria-label="계정"
-        onClick={() => setOpen((v) => !v)}
-      />
-      {open && (
-        <div className="login-dropdown">
-          <div className="login-title">부락지 로그인</div>
-          <div className="login-sub">
-            로그인하면 저장한 타이머를 이 계정에서 불러옵니다.
-          </div>
-          <form onSubmit={submit}>
-            <input
-              type="text"
-              placeholder="아이디"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="비밀번호"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {error && <div className="login-error">{error}</div>}
-            <button type="submit" className="login-submit" disabled={loading}>
-              {loading ? '로그인 중…' : '로그인'}
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
+        <h2>화면 선택</h2>
+        <p>타이머가 끝나면 표시할 화면을 고르세요.</p>
+        <div className="screen-options">
+          {SCREEN_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              className={`screen-option${draft === o.key ? ' selected' : ''}`}
+              onClick={() => setDraft(o.key)}
+            >
+              <div className={`screen-thumb thumb-${o.key}`}>
+                {o.key === 'bsod' && <span className="thumb-face">:(</span>}
+                {o.key === 'error' && <span className="thumb-x">✕</span>}
+                {o.key === 'meme' && <img src={memeImg} alt="" />}
+              </div>
+              <div className="screen-label">{o.label}</div>
+              <div className="screen-desc">{o.desc}</div>
             </button>
-          </form>
-          <div className="login-divider">
-            <span>또는</span>
-          </div>
-          <a className="naver-btn" href={`${API_BASE}/oauth2/authorization/naver`}>
-            <span className="naver-logo">N</span>
-            네이버로 로그인
-          </a>
+          ))}
         </div>
-      )}
+        <div className="modal-buttons">
+          <button type="button" className="modal-cancel" onClick={onClose}>
+            취소
+          </button>
+          <button
+            type="button"
+            className="modal-save"
+            onClick={() => onSave(draft)}
+          >
+            저장
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
+// ── 정상(위장) 화면 ──────────────────────────
 function NormalScreen({
   now,
   triggerAt,
+  screen,
+  nickname,
   onSetTrigger,
+  onSetScreen,
+  onAuth,
+  onLogout,
 }: {
   now: Date
   triggerAt: Date
+  screen: ScreenType
+  nickname: string | null
   onSetTrigger: (v: string) => void
+  onSetScreen: (v: ScreenType) => void
+  onAuth: (r: {
+    token: string
+    nickname: string | null
+    triggerAt: string | null
+    screen: string
+  }) => void
+  onLogout: () => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [timerOpen, setTimerOpen] = useState(false)
+  const [screenOpen, setScreenOpen] = useState(false)
   return (
     <main className="google">
       <header className="google-header">
@@ -193,7 +324,7 @@ function NormalScreen({
             d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"
           />
         </svg>
-        <LoginMenu onLogin={onSetTrigger} />
+        <LoginMenu nickname={nickname} onAuth={onAuth} onLogout={onLogout} />
       </header>
 
       <div className="google-center">
@@ -233,14 +364,30 @@ function NormalScreen({
           </svg>
         </form>
 
-        <div className="shortcut" onClick={() => setOpen(true)}>
-          <div className="shortcut-circle">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="#e8eaed" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>
+        <div className="shortcuts">
+          <div className="shortcut" onClick={() => setTimerOpen(true)}>
+            <div className="shortcut-circle">
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="#e8eaed" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
+            </div>
+            <div className="shortcut-label">타이머 설정</div>
+            <Countdown now={now} triggerAt={triggerAt} />
           </div>
-          <div className="shortcut-label">타이머 설정</div>
-          <Countdown now={now} triggerAt={triggerAt} />
+          <div className="shortcut" onClick={() => setScreenOpen(true)}>
+            <div className="shortcut-circle">
+              <svg viewBox="0 0 24 24" width="22" height="22">
+                <path
+                  fill="#e8eaed"
+                  d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"
+                />
+              </svg>
+            </div>
+            <div className="shortcut-label">화면 선택</div>
+            <div className="countdown">
+              {SCREEN_OPTIONS.find((o) => o.key === screen)?.label}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -254,20 +401,31 @@ function NormalScreen({
         Chrome 맞춤설정
       </div>
 
-      {open && (
+      {timerOpen && (
         <TimerModal
           value={toLocalInputValue(triggerAt)}
           onSave={(v) => {
             onSetTrigger(v)
-            setOpen(false)
+            setTimerOpen(false)
           }}
-          onClose={() => setOpen(false)}
+          onClose={() => setTimerOpen(false)}
+        />
+      )}
+      {screenOpen && (
+        <ScreenModal
+          value={screen}
+          onSave={(v) => {
+            onSetScreen(v)
+            setScreenOpen(false)
+          }}
+          onClose={() => setScreenOpen(false)}
         />
       )}
     </main>
   )
 }
 
+// ── 전환 화면들 ──────────────────────────
 function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
   const [percent, setPercent] = useState(0)
   useEffect(() => {
@@ -276,7 +434,6 @@ function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
     }, 1800)
     return () => clearInterval(id)
   }, [])
-
   return (
     <main className="bsod">
       <div className="bsod-content">
@@ -301,20 +458,96 @@ function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
           </div>
         </div>
       </div>
-      <button type="button" className="bsod-checkout" onClick={onCheckout}>
+      <button type="button" className="exit-btn" onClick={onCheckout}>
         퇴근
       </button>
     </main>
   )
 }
 
+function ErrorScreen({ onCheckout }: { onCheckout: () => void }) {
+  return (
+    <main className="errscreen">
+      <div className="errbox">
+        <div className="errbox-title">
+          <span>시스템 오류</span>
+          <span className="errbox-x">✕</span>
+        </div>
+        <div className="errbox-body">
+          <div className="errbox-icon">✕</div>
+          <div>
+            <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
+            <p className="errbox-p">
+              응용 프로그램을 계속 실행할 수 없습니다.
+              <br />
+              오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
+            </p>
+          </div>
+        </div>
+        <div className="errbox-buttons">
+          <button type="button" className="errbox-btn" onClick={onCheckout}>
+            퇴근
+          </button>
+          <button type="button" className="errbox-btn errbox-btn-ghost" disabled>
+            다시 시도
+          </button>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function MemeScreen({ onCheckout }: { onCheckout: () => void }) {
+  return (
+    <main className="memescreen">
+      <img src={memeImg} alt="아유 하기 싫어" />
+      <button type="button" className="exit-btn" onClick={onCheckout}>
+        퇴근
+      </button>
+    </main>
+  )
+}
+
+// ── 앱 루트 ──────────────────────────
 function App() {
   const now = useNow()
-  const [trigger, setTrigger] = useState(loadTrigger)
-  const [token, setToken] = useState<string | null>(loadToken)
+  const [trigger, setTrigger] = useState(
+    () => localStorage.getItem(STORAGE_KEY) ?? DEFAULT_TRIGGER,
+  )
+  const [screen, setScreen] = useState<ScreenType>(
+    () => (localStorage.getItem(SCREEN_KEY) as ScreenType) ?? 'bsod',
+  )
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem(TOKEN_KEY),
+  )
+  const [nickname, setNickname] = useState<string | null>(() =>
+    localStorage.getItem(NICK_KEY),
+  )
   const triggerAt = new Date(trigger)
 
-  // 네이버 로그인 리다이렉트(?token=...) 처리: 토큰 저장 후 계정 타이머 불러오기
+  const applyAuth = (r: {
+    token: string
+    nickname: string | null
+    triggerAt: string | null
+    screen: string
+  }) => {
+    localStorage.setItem(TOKEN_KEY, r.token)
+    setToken(r.token)
+    if (r.nickname) {
+      localStorage.setItem(NICK_KEY, r.nickname)
+      setNickname(r.nickname)
+    }
+    if (r.triggerAt) {
+      localStorage.setItem(STORAGE_KEY, r.triggerAt)
+      setTrigger(r.triggerAt)
+    }
+    if (r.screen) {
+      localStorage.setItem(SCREEN_KEY, r.screen)
+      setScreen(r.screen as ScreenType)
+    }
+  }
+
+  // 네이버 로그인 리다이렉트(?token=) 처리
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const t = params.get('token')
@@ -322,49 +555,78 @@ function App() {
     localStorage.setItem(TOKEN_KEY, t)
     setToken(t)
     window.history.replaceState({}, '', window.location.pathname)
-    fetch(`${API_BASE}/api/v1/me/timer`, {
+    fetch(`${API_BASE}/api/v1/me`, {
       headers: { Authorization: `Bearer ${t}` },
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.triggerAt) {
-          localStorage.setItem(STORAGE_KEY, data.triggerAt)
-          setTrigger(data.triggerAt)
-        }
+        if (!data) return
+        applyAuth({
+          token: t,
+          nickname: data.nickname,
+          triggerAt: data.triggerAt,
+          screen: data.screen,
+        })
       })
       .catch(() => {})
   }, [])
 
-  const applyTrigger = (v: string) => {
+  const saveSettings = (patch: { triggerAt?: string; screen?: ScreenType }) => {
+    if (!token) return
+    fetch(`${API_BASE}/api/v1/me/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(patch),
+    }).catch(() => {})
+  }
+
+  const handleSetTrigger = (v: string) => {
     localStorage.setItem(STORAGE_KEY, v)
     setTrigger(v)
+    saveSettings({ triggerAt: v })
   }
 
-  // 타이머 저장: 로컬 저장 + 로그인 상태면 계정에도 저장
-  const handleSetTrigger = (v: string) => {
-    applyTrigger(v)
-    if (token) {
-      fetch(`${API_BASE}/api/v1/me/timer`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ triggerAt: v }),
-      }).catch(() => {})
-    }
+  const handleSetScreen = (v: ScreenType) => {
+    localStorage.setItem(SCREEN_KEY, v)
+    setScreen(v)
+    saveSettings({ screen: v })
   }
 
-  // [퇴근] — 저장된 타이머를 삭제하고 기본값(D-Day)으로 되돌려 정상 화면으로 복귀
+  const handleLogout = () => {
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(NICK_KEY)
+    setToken(null)
+    setNickname(null)
+  }
+
+  // [퇴근] — 트리거를 기본값(D-Day)으로 되돌려 정상 화면 복귀
   const handleCheckout = () => {
-    localStorage.removeItem(STORAGE_KEY)
-    setTrigger(DEFAULT_TRIGGER)
+    const back = DEFAULT_TRIGGER
+    localStorage.setItem(STORAGE_KEY, back)
+    setTrigger(back)
+    saveSettings({ triggerAt: back })
   }
 
-  return now >= triggerAt ? (
-    <BlueScreen onCheckout={handleCheckout} />
-  ) : (
-    <NormalScreen now={now} triggerAt={triggerAt} onSetTrigger={handleSetTrigger} />
+  if (now >= triggerAt) {
+    if (screen === 'error') return <ErrorScreen onCheckout={handleCheckout} />
+    if (screen === 'meme') return <MemeScreen onCheckout={handleCheckout} />
+    return <BlueScreen onCheckout={handleCheckout} />
+  }
+
+  return (
+    <NormalScreen
+      now={now}
+      triggerAt={triggerAt}
+      screen={screen}
+      nickname={nickname}
+      onSetTrigger={handleSetTrigger}
+      onSetScreen={handleSetScreen}
+      onAuth={applyAuth}
+      onLogout={handleLogout}
+    />
   )
 }
 
