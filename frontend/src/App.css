@@ -616,10 +616,26 @@ main {
 .err-overlay {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: rgba(0, 0, 0, 0.35);
+}
+
+.err-slot-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.err-slot {
+  position: absolute;
+  transform: scale(0.9);
+}
+
+.fireworks {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
 }
 
 .errbox {
@@ -738,13 +754,13 @@ main {
 
 .macbox-btn-ghost {
   margin-left: auto;
-  padding: 0.4rem 0.9rem;
+  padding: 0.4rem 1.1rem;
   border: 1px solid #b0b0b0;
   border-radius: 6px;
   background: linear-gradient(#fdfdfd, #ededed);
-  color: #999;
+  color: #333;
   font-size: 0.85rem;
-  cursor: default;
+  cursor: pointer;
 }
 
 .macbox-btn {
@@ -773,6 +789,7 @@ main {
 .errbox-x {
   padding: 0 0.4rem;
   background: #c0392b;
+  cursor: pointer;
 }
 
 .errbox-body {

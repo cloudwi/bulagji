@@ -450,9 +450,68 @@ function NormalScreen({
   )
 }
 
+// ── 폭죽(퇴근 축하) ──────────────────────────
+function Fireworks() {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = ref.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    type P = { x: number; y: number; vx: number; vy: number; life: number; hue: number }
+    const parts: P[] = []
+    const burst = (x: number, y: number) => {
+      const n = 44
+      const hue = Math.floor(Math.random() * 360)
+      for (let i = 0; i < n; i++) {
+        const a = (Math.PI * 2 * i) / n
+        const s = 2 + Math.random() * 4.5
+        parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, hue })
+      }
+    }
+    let t = 0
+    let raf = 0
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      if (t % 10 === 0 && t < 140) {
+        burst(Math.random() * canvas.width, Math.random() * canvas.height * 0.55 + 40)
+      }
+      for (const p of parts) {
+        p.x += p.vx
+        p.y += p.vy
+        p.vy += 0.05
+        p.life -= 0.014
+        if (p.life <= 0) continue
+        ctx.globalAlpha = Math.max(0, p.life)
+        ctx.fillStyle = `hsl(${p.hue}, 100%, 60%)`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      t++
+      raf = requestAnimationFrame(loop)
+    }
+    loop()
+    return () => cancelAnimationFrame(raf)
+  }, [])
+  return <canvas ref={ref} className="fireworks" />
+}
+
+// 퇴근 클릭 → 폭죽 후 복귀
+function useCelebrate(onDone: () => void): [boolean, () => void] {
+  const [on, setOn] = useState(false)
+  const go = () => {
+    setOn(true)
+    setTimeout(onDone, 2000)
+  }
+  return [on, go]
+}
+
 // ── 전환 화면들 ──────────────────────────
 function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
   const [percent, setPercent] = useState(0)
+  const [celeb, celebrate] = useCelebrate(onCheckout)
   useEffect(() => {
     const id = setInterval(() => {
       setPercent((p) => (p >= 100 ? 100 : p + Math.floor(Math.random() * 9) + 1))
@@ -483,9 +542,10 @@ function BlueScreen({ onCheckout }: { onCheckout: () => void }) {
           </div>
         </div>
       </div>
-      <button type="button" className="exit-btn" onClick={onCheckout}>
+      <button type="button" className="exit-btn" onClick={celebrate}>
         퇴근
       </button>
+      {celeb && <Fireworks />}
     </main>
   )
 }
@@ -527,43 +587,45 @@ function detectOS(): 'mac' | 'windows' {
   return 'windows'
 }
 
-// Windows 스타일 오류 대화상자
-function WinErrorDialog({ onCheckout }: { onCheckout: () => void }) {
+type DialogProps = { onCheckout: () => void; onCancel: () => void }
+
+// Windows 클래식 "응용 프로그램 오류" 대화상자
+function WinErrorDialog({ onCheckout, onCancel }: DialogProps) {
   return (
-    <>
-      <div className="errbox errbox-ghost errbox-ghost2" />
-      <div className="errbox errbox-ghost errbox-ghost1" />
-      <div className="errbox">
-        <div className="errbox-title">
-          <span>⚠ 시스템 오류</span>
-          <span className="errbox-x">✕</span>
-        </div>
-        <div className="errbox-body">
-          <div className="errbox-icon">✕</div>
-          <div>
-            <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
-            <p className="errbox-p">
-              응용 프로그램을 계속 실행할 수 없습니다.
-              <br />
-              오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
-            </p>
-          </div>
-        </div>
-        <div className="errbox-buttons">
-          <button type="button" className="errbox-btn" onClick={onCheckout}>
-            퇴근
-          </button>
-          <button type="button" className="errbox-btn errbox-btn-ghost" disabled>
-            다시 시도
-          </button>
+    <div className="errbox">
+      <div className="errbox-title">
+        <span>부락지.exe - 응용 프로그램 오류</span>
+        <span className="errbox-x" onClick={onCancel}>
+          ✕
+        </span>
+      </div>
+      <div className="errbox-body">
+        <div className="errbox-icon">✕</div>
+        <div>
+          <p className="errbox-h">
+            0x00DE4D3F의 명령이 0x00000018의 메모리를 참조했습니다.
+          </p>
+          <p className="errbox-p">
+            메모리가 read될 수 없습니다.
+            <br />
+            프로그램을 마치려면 [퇴근]을 클릭하십시오.
+          </p>
         </div>
       </div>
-    </>
+      <div className="errbox-buttons">
+        <button type="button" className="errbox-btn" onClick={onCheckout}>
+          퇴근
+        </button>
+        <button type="button" className="errbox-btn" onClick={onCancel}>
+          취소
+        </button>
+      </div>
+    </div>
   )
 }
 
 // macOS 스타일 문제 리포트 대화상자
-function MacErrorDialog({ onCheckout }: { onCheckout: () => void }) {
+function MacErrorDialog({ onCheckout, onCancel }: DialogProps) {
   return (
     <div className="macbox">
       <div className="macbox-title">
@@ -582,8 +644,8 @@ function MacErrorDialog({ onCheckout }: { onCheckout: () => void }) {
       </div>
       <div className="macbox-buttons">
         <span className="macbox-help">?</span>
-        <button type="button" className="macbox-btn-ghost" disabled>
-          세부사항 보기
+        <button type="button" className="macbox-btn-ghost" onClick={onCancel}>
+          취소
         </button>
         <button type="button" className="macbox-btn" onClick={onCheckout}>
           퇴근
@@ -595,27 +657,54 @@ function MacErrorDialog({ onCheckout }: { onCheckout: () => void }) {
 
 function ErrorScreen({ onCheckout }: { onCheckout: () => void }) {
   const os = detectOS()
+  const Dialog = os === 'mac' ? MacErrorDialog : WinErrorDialog
+  const [dialogs, setDialogs] = useState<number[]>([0])
+  const idRef = useRef(1)
+  const [celeb, celebrate] = useCelebrate(onCheckout)
+
+  // 취소/X → 오른쪽 하단에 팝업이 계속 증식 (팝업 지옥)
+  const spawn = () => {
+    setDialogs((d) => (d.length >= 40 ? d : [...d, idRef.current++]))
+  }
+
   return (
     <main className="errscreen">
       <GoogleBackdrop />
       <div className="err-overlay">
-        {os === 'mac' ? (
-          <MacErrorDialog onCheckout={onCheckout} />
-        ) : (
-          <WinErrorDialog onCheckout={onCheckout} />
-        )}
+        {dialogs.map((id, i) => {
+          if (i === 0) {
+            return (
+              <div key={id} className="err-slot-center">
+                <Dialog onCheckout={celebrate} onCancel={spawn} />
+              </div>
+            )
+          }
+          const k = (i - 1) % 15
+          return (
+            <div
+              key={id}
+              className="err-slot"
+              style={{ right: 24 + k * 26, bottom: 24 + k * 22 }}
+            >
+              <Dialog onCheckout={celebrate} onCancel={spawn} />
+            </div>
+          )
+        })}
       </div>
+      {celeb && <Fireworks />}
     </main>
   )
 }
 
 function MemeScreen({ onCheckout }: { onCheckout: () => void }) {
+  const [celeb, celebrate] = useCelebrate(onCheckout)
   return (
     <main className="memescreen">
       <img src={memeImg} alt="아유 하기 싫어" />
-      <button type="button" className="exit-btn" onClick={onCheckout}>
+      <button type="button" className="exit-btn" onClick={celebrate}>
         퇴근
       </button>
+      {celeb && <Fireworks />}
     </main>
   )
 }
