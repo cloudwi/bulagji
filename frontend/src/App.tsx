@@ -314,25 +314,30 @@ function InfoModal({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>🔥 퇴근 방화벽</h2>
-        <p className="info-sub">— 정시 퇴근을 지켜주는 방화벽, 부락지</p>
-        <p className="info-text">
-          연휴 전날, 정해둔 시간이 되면 화면에 가짜 오류(블루스크린·오류
-          팝업·밈)를 띄워 "컴퓨터가 고장났다"는 명분으로 칼퇴를 돕는 유머 웹
-          서비스입니다. 🏃💨
+        <p className="info-sub">정시 퇴근을 지켜주는 방화벽</p>
+        <p className="info-lead">
+          정해둔 시간이 되면 모니터에 가짜 고장 화면을 띄워요.
           <br />
-          <br />
-          🕐 <b>타이머 설정</b> — 화면이 뜰 날짜·시간(초 단위)을 지정
-          <br />
-          🖥️ <b>화면 선택</b> — 블루스크린 / 오류 팝업창 / 밈 중 선택 (클릭 시
-          즉시 미리보기)
-          <br />
-          🔑 <b>로그인</b> — 설정이 계정에 저장되어 다음에도 유지
-          <br />
-          🎆 <b>퇴근 버튼</b> — 누르면 폭죽과 함께 정상 화면으로 복귀
+          "컴퓨터가 죽었으니 오늘은 여기까지" 하고 당당하게 일어나세요.
         </p>
+        <ul className="info-list">
+          <li>
+            <b>타이머</b> 화면이 뜰 시각을 정합니다
+          </li>
+          <li>
+            <b>화면 선택</b> 블루스크린·오류창·밈·GIF 중 골라요. 누르면 바로
+            미리보기
+          </li>
+          <li>
+            <b>로그인</b> 설정을 저장해 다음에도 그대로
+          </li>
+          <li>
+            <b>퇴근 버튼</b> 누르면 폭죽과 함께 원래 화면으로
+          </li>
+        </ul>
         <div className="modal-buttons">
           <button type="button" className="modal-save" onClick={onClose}>
-            확인
+            좋아요, 퇴근할게요
           </button>
         </div>
       </div>

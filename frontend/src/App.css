@@ -506,19 +506,41 @@ main {
 
 .info-sub {
   margin-top: -0.7rem !important;
-  margin-bottom: 1rem !important;
+  margin-bottom: 1.1rem !important;
   color: #8ab4f8 !important;
   font-weight: 600;
+  font-size: 0.85rem !important;
 }
 
-.info-text {
-  font-size: 0.9rem;
-  line-height: 1.65;
-  color: #cfd2d6;
+.info-lead {
+  font-size: 0.98rem !important;
+  line-height: 1.7 !important;
+  color: #e8eaed !important;
+  margin-bottom: 1.3rem !important;
 }
 
-.info-text b {
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.info-list li {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #b8bcc2;
+  padding-left: 0.9rem;
+  border-left: 2px solid #4a4e51;
+}
+
+.info-list b {
+  display: block;
   color: #e8eaed;
+  font-weight: 600;
+  margin-bottom: 0.1rem;
 }
 
 .modal-buttons {
