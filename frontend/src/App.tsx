@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import qrImg from './assets/instagram-qr.png'
 import memeImg from './assets/meme.webp'
+import gif1Img from './assets/gif1.gif'
+import gif2Img from './assets/gif2.gif'
 import './App.css'
 
 // 기본 트리거: 제헌절 전날 17:00 KST. 로그인하면 계정에 저장된 값으로 대체됨
@@ -12,7 +14,14 @@ const NICK_KEY = 'bulagji.nickname'
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? 'https://bulagji-backend.onrender.com'
 
-type ScreenType = 'bsod' | 'error' | 'meme'
+type ScreenType = 'bsod' | 'error' | 'meme' | 'gif1' | 'gif2'
+
+// 이미지/GIF로 표시되는 화면의 소스 (없으면 커스텀 렌더)
+const SCREEN_IMAGES: Partial<Record<ScreenType, string>> = {
+  meme: memeImg,
+  gif1: gif1Img,
+  gif2: gif2Img,
+}
 
 function useNow() {
   const [now, setNow] = useState(() => new Date())
@@ -252,51 +261,78 @@ const SCREEN_OPTIONS: { key: ScreenType; label: string; desc: string }[] = [
   { key: 'bsod', label: '블루스크린', desc: 'Windows 오류 전체화면' },
   { key: 'error', label: '오류 팝업창', desc: '치명적 오류 대화상자' },
   { key: 'meme', label: '밈 화면', desc: '아유… 하기 싫어…' },
+  { key: 'gif1', label: '책상 GIF', desc: '책상 속으로 사라지기' },
+  { key: 'gif2', label: '퇴근 GIF', desc: '최고의 보물은 퇴근' },
 ]
 
 function ScreenModal({
   value,
-  onSave,
+  onPreview,
   onClose,
 }: {
   value: ScreenType
-  onSave: (v: ScreenType) => void
+  onPreview: (v: ScreenType) => void
   onClose: () => void
 }) {
-  const [draft, setDraft] = useState<ScreenType>(value)
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
         <h2>화면 선택</h2>
-        <p>타이머가 끝나면 표시할 화면을 고르세요.</p>
+        <p>썸네일을 클릭하면 타이머와 상관없이 바로 미리보기가 뜹니다. 미리본 화면이 선택으로 저장됩니다.</p>
         <div className="screen-options">
           {SCREEN_OPTIONS.map((o) => (
             <button
               key={o.key}
               type="button"
-              className={`screen-option${draft === o.key ? ' selected' : ''}`}
-              onClick={() => setDraft(o.key)}
+              className={`screen-option${value === o.key ? ' selected' : ''}`}
+              onClick={() => onPreview(o.key)}
             >
               <div className={`screen-thumb thumb-${o.key}`}>
                 {o.key === 'bsod' && <span className="thumb-face">:(</span>}
                 {o.key === 'error' && <span className="thumb-x">✕</span>}
-                {o.key === 'meme' && <img src={memeImg} alt="" />}
+                {SCREEN_IMAGES[o.key] && <img src={SCREEN_IMAGES[o.key]} alt="" />}
               </div>
               <div className="screen-label">{o.label}</div>
               <div className="screen-desc">{o.desc}</div>
+              <div className="screen-play">▶ 바로보기</div>
             </button>
           ))}
         </div>
         <div className="modal-buttons">
           <button type="button" className="modal-cancel" onClick={onClose}>
-            취소
+            닫기
           </button>
-          <button
-            type="button"
-            className="modal-save"
-            onClick={() => onSave(draft)}
-          >
-            저장
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 서비스 설명 모달 ──────────────────────────
+function InfoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>🔥 퇴근 방화벽</h2>
+        <p className="info-sub">— 정시 퇴근을 지켜주는 방화벽, 부락지</p>
+        <p className="info-text">
+          연휴 전날, 정해둔 시간이 되면 화면에 가짜 오류(블루스크린·오류
+          팝업·밈)를 띄워 "컴퓨터가 고장났다"는 명분으로 칼퇴를 돕는 유머 웹
+          서비스입니다. 🏃💨
+          <br />
+          <br />
+          🕐 <b>타이머 설정</b> — 화면이 뜰 날짜·시간(초 단위)을 지정
+          <br />
+          🖥️ <b>화면 선택</b> — 블루스크린 / 오류 팝업창 / 밈 중 선택 (클릭 시
+          즉시 미리보기)
+          <br />
+          🔑 <b>로그인</b> — 설정이 계정에 저장되어 다음에도 유지
+          <br />
+          🎆 <b>퇴근 버튼</b> — 누르면 폭죽과 함께 정상 화면으로 복귀
+        </p>
+        <div className="modal-buttons">
+          <button type="button" className="modal-save" onClick={onClose}>
+            확인
           </button>
         </div>
       </div>
@@ -312,7 +348,7 @@ function NormalScreen({
   loggedIn,
   nickname,
   onSetTrigger,
-  onSetScreen,
+  onPreview,
   onAuth,
   onLogout,
 }: {
@@ -322,7 +358,7 @@ function NormalScreen({
   loggedIn: boolean
   nickname: string | null
   onSetTrigger: (v: string) => void
-  onSetScreen: (v: ScreenType) => void
+  onPreview: (v: ScreenType) => void
   onAuth: (r: {
     token: string
     nickname: string | null
@@ -333,6 +369,7 @@ function NormalScreen({
 }) {
   const [timerOpen, setTimerOpen] = useState(false)
   const [screenOpen, setScreenOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   return (
     <main className="google">
       <header className="google-header">
@@ -390,6 +427,18 @@ function NormalScreen({
         </form>
 
         <div className="shortcuts">
+          <div className="shortcut" onClick={() => setInfoOpen(true)}>
+            <div className="shortcut-circle">
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path
+                  fill="#e8eaed"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+            </div>
+            <div className="shortcut-label">서비스 설명</div>
+            <div className="countdown">퇴근 방화벽</div>
+          </div>
           <div className="shortcut" onClick={() => setTimerOpen(true)}>
             <div className="shortcut-circle">
               <svg viewBox="0 0 24 24" width="24" height="24">
@@ -439,13 +488,14 @@ function NormalScreen({
       {screenOpen && (
         <ScreenModal
           value={screen}
-          onSave={(v) => {
-            onSetScreen(v)
+          onPreview={(v) => {
             setScreenOpen(false)
+            onPreview(v)
           }}
           onClose={() => setScreenOpen(false)}
         />
       )}
+      {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
     </main>
   )
 }
@@ -696,11 +746,17 @@ function ErrorScreen({ onCheckout }: { onCheckout: () => void }) {
   )
 }
 
-function MemeScreen({ onCheckout }: { onCheckout: () => void }) {
+function ImageScreen({
+  src,
+  onCheckout,
+}: {
+  src: string
+  onCheckout: () => void
+}) {
   const [celeb, celebrate] = useCelebrate(onCheckout)
   return (
     <main className="memescreen">
-      <img src={memeImg} alt="아유 하기 싫어" />
+      <img src={src} alt="" />
       <button type="button" className="exit-btn" onClick={celebrate}>
         퇴근
       </button>
@@ -724,6 +780,8 @@ function App() {
   const [nickname, setNickname] = useState<string | null>(() =>
     localStorage.getItem(NICK_KEY),
   )
+  // 미리보기: 타이머와 무관하게 즉시 표시할 화면 (null이면 미리보기 아님)
+  const [preview, setPreview] = useState<ScreenType | null>(null)
   const triggerAt = new Date(trigger)
 
   const applyAuth = (r: {
@@ -811,10 +869,22 @@ function App() {
     saveSettings({ triggerAt: back })
   }
 
-  if (now >= triggerAt) {
-    if (screen === 'error') return <ErrorScreen onCheckout={handleCheckout} />
-    if (screen === 'meme') return <MemeScreen onCheckout={handleCheckout} />
-    return <BlueScreen onCheckout={handleCheckout} />
+  // 화면 선택 팝업에서 썸네일 클릭 → 선택 저장 + 즉시 미리보기
+  const handlePreview = (v: ScreenType) => {
+    handleSetScreen(v)
+    setPreview(v)
+  }
+
+  // 미리보기 중이면 타이머 무관하게 그 화면, 아니면 트리거 판정
+  const activeScreen: ScreenType | null =
+    preview ?? (now >= triggerAt ? screen : null)
+  const exit = preview ? () => setPreview(null) : handleCheckout
+
+  if (activeScreen) {
+    const imgSrc = SCREEN_IMAGES[activeScreen]
+    if (activeScreen === 'error') return <ErrorScreen onCheckout={exit} />
+    if (imgSrc) return <ImageScreen src={imgSrc} onCheckout={exit} />
+    return <BlueScreen onCheckout={exit} />
   }
 
   return (
@@ -825,7 +895,7 @@ function App() {
       loggedIn={!!token}
       nickname={nickname}
       onSetTrigger={handleSetTrigger}
-      onSetScreen={handleSetScreen}
+      onPreview={handlePreview}
       onAuth={applyAuth}
       onLogout={handleLogout}
     />

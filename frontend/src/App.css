@@ -492,6 +492,35 @@ main {
   color: #9aa0a6;
 }
 
+.screen-play {
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  color: #8ab4f8;
+  font-weight: 600;
+}
+
+.thumb-gif1,
+.thumb-gif2 {
+  background: #000;
+}
+
+.info-sub {
+  margin-top: -0.7rem !important;
+  margin-bottom: 1rem !important;
+  color: #8ab4f8 !important;
+  font-weight: 600;
+}
+
+.info-text {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #cfd2d6;
+}
+
+.info-text b {
+  color: #e8eaed;
+}
+
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
