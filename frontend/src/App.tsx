@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import qrImg from './assets/stopcode-qr.png'
+import qrImg from './assets/instagram-qr.png'
 import './App.css'
 
 // 기본 트리거: 제헌절 전날 17:00 KST. TODO: 백엔드 /api/v1/schedule (DB 관리) 연동 시 대체
@@ -103,14 +103,29 @@ function NormalScreen({
 
       <div className="google-center">
         <div className="google-logo">Google</div>
-        <div className="google-search">
+        <form
+          className="google-search"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const q = new FormData(e.currentTarget).get('q')?.toString().trim()
+            if (q) {
+              window.location.href = `https://www.google.com/search?q=${encodeURIComponent(q)}`
+            }
+          }}
+        >
           <svg viewBox="0 0 24 24" width="20" height="20">
             <path
               fill="#9aa0a6"
               d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
             />
           </svg>
-          <input type="text" placeholder="Google에 물어보기" aria-label="검색" />
+          <input
+            type="text"
+            name="q"
+            placeholder="Google에 물어보기"
+            aria-label="검색"
+            autoComplete="off"
+          />
           <svg viewBox="0 0 24 24" width="24" height="24">
             <path
               fill="#8ab4f8"
@@ -121,7 +136,7 @@ function NormalScreen({
               d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
             />
           </svg>
-        </div>
+        </form>
 
         <div className="shortcut" onClick={() => setOpen(true)}>
           <div className="shortcut-circle">
