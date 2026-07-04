@@ -40,4 +40,4 @@ npm run dev
 | 백엔드 서버 | Render |
 | DB · 파일 저장 | Supabase (PostgreSQL + Storage) |
 | 헬스체크 · 모니터링 | UptimeRobot |
-| 프론트 호스팅 | Vercel / Cloudflare Pages |
+| 프론트 호스팅 | Vercel |
