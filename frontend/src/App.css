@@ -662,6 +662,103 @@ main {
   opacity: 0.85;
 }
 
+/* ── macOS 문제 리포트 대화상자 ─────────────── */
+.macbox {
+  width: min(32rem, 92vw);
+  border-radius: 10px;
+  background: #ececec;
+  color: #1d1d1f;
+  font-family: -apple-system, 'SF Pro Text', 'Apple SD Gothic Neo', system-ui,
+    sans-serif;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: err-pop 0.18s ease-out;
+}
+
+.macbox-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem;
+  background: linear-gradient(#e3e3e3, #d2d2d2);
+  border-bottom: 1px solid #b9b9b9;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.macbox-body {
+  display: flex;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem 0.6rem;
+}
+
+.macbox-icon {
+  flex-shrink: 0;
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.macbox-h {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 0.7rem;
+}
+
+.macbox-p {
+  font-size: 0.85rem;
+  color: #3a3a3c;
+}
+
+.macbox-disc {
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  color: #3a3a3c;
+}
+
+.macbox-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.5rem 1.2rem;
+}
+
+.macbox-help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #a9a9a9;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.macbox-btn-ghost {
+  margin-left: auto;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #b0b0b0;
+  border-radius: 6px;
+  background: linear-gradient(#fdfdfd, #ededed);
+  color: #999;
+  font-size: 0.85rem;
+  cursor: default;
+}
+
+.macbox-btn {
+  padding: 0.4rem 1.3rem;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(#4a94f8, #1a73e8);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .errbox-title {
   display: flex;
   align-items: center;

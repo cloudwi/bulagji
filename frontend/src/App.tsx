@@ -521,43 +521,89 @@ function GoogleBackdrop() {
   )
 }
 
+function detectOS(): 'mac' | 'windows' {
+  const ua = navigator.userAgent
+  if (/Mac|iPhone|iPad|iPod/.test(ua)) return 'mac'
+  return 'windows'
+}
+
+// Windows 스타일 오류 대화상자
+function WinErrorDialog({ onCheckout }: { onCheckout: () => void }) {
+  return (
+    <>
+      <div className="errbox errbox-ghost errbox-ghost2" />
+      <div className="errbox errbox-ghost errbox-ghost1" />
+      <div className="errbox">
+        <div className="errbox-title">
+          <span>⚠ 시스템 오류</span>
+          <span className="errbox-x">✕</span>
+        </div>
+        <div className="errbox-body">
+          <div className="errbox-icon">✕</div>
+          <div>
+            <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
+            <p className="errbox-p">
+              응용 프로그램을 계속 실행할 수 없습니다.
+              <br />
+              오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
+            </p>
+          </div>
+        </div>
+        <div className="errbox-buttons">
+          <button type="button" className="errbox-btn" onClick={onCheckout}>
+            퇴근
+          </button>
+          <button type="button" className="errbox-btn errbox-btn-ghost" disabled>
+            다시 시도
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// macOS 스타일 문제 리포트 대화상자
+function MacErrorDialog({ onCheckout }: { onCheckout: () => void }) {
+  return (
+    <div className="macbox">
+      <div className="macbox-title">
+        <span className="macbox-warn">⚠️</span>
+        부락지에 대한 문제 리포트
+      </div>
+      <div className="macbox-body">
+        <div className="macbox-icon">⚠️</div>
+        <div>
+          <p className="macbox-h">
+            부락지 응용 프로그램이 예기치 않게 종료되었습니다.
+          </p>
+          <p className="macbox-p">이 리포트는 자동으로 Apple로 보내집니다.</p>
+          <p className="macbox-disc">▶ 설명</p>
+        </div>
+      </div>
+      <div className="macbox-buttons">
+        <span className="macbox-help">?</span>
+        <button type="button" className="macbox-btn-ghost" disabled>
+          세부사항 보기
+        </button>
+        <button type="button" className="macbox-btn" onClick={onCheckout}>
+          퇴근
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ErrorScreen({ onCheckout }: { onCheckout: () => void }) {
+  const os = detectOS()
   return (
     <main className="errscreen">
       <GoogleBackdrop />
       <div className="err-overlay">
-        {/* 뒤에 겹쳐 쌓인 느낌을 주는 데코 팝업 2개 */}
-        <div className="errbox errbox-ghost errbox-ghost2" />
-        <div className="errbox errbox-ghost errbox-ghost1" />
-        <div className="errbox">
-          <div className="errbox-title">
-            <span>⚠ 시스템 오류</span>
-            <span className="errbox-x">✕</span>
-          </div>
-          <div className="errbox-body">
-            <div className="errbox-icon">✕</div>
-            <div>
-              <p className="errbox-h">치명적인 오류가 발생했습니다.</p>
-              <p className="errbox-p">
-                응용 프로그램을 계속 실행할 수 없습니다.
-                <br />
-                오류 코드: 0x000DE4D (WORK_OVERLOAD_EXCEPTION)
-              </p>
-            </div>
-          </div>
-          <div className="errbox-buttons">
-            <button type="button" className="errbox-btn" onClick={onCheckout}>
-              퇴근
-            </button>
-            <button
-              type="button"
-              className="errbox-btn errbox-btn-ghost"
-              disabled
-            >
-              다시 시도
-            </button>
-          </div>
-        </div>
+        {os === 'mac' ? (
+          <MacErrorDialog onCheckout={onCheckout} />
+        ) : (
+          <WinErrorDialog onCheckout={onCheckout} />
+        )}
       </div>
     </main>
   )
