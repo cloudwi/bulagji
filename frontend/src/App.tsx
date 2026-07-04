@@ -45,10 +45,12 @@ function Countdown({ now, triggerAt }: { now: Date; triggerAt: Date }) {
 
 // ── 로그인 / 회원가입 드롭다운 ──────────────────────────
 function LoginMenu({
+  loggedIn,
   nickname,
   onAuth,
   onLogout,
 }: {
+  loggedIn: boolean
   nickname: string | null
   onAuth: (r: {
     token: string
@@ -58,6 +60,7 @@ function LoginMenu({
   }) => void
   onLogout: () => void
 }) {
+  const displayName = nickname ?? '회원'
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [username, setUsername] = useState('')
@@ -105,23 +108,24 @@ function LoginMenu({
     <div className="account" ref={ref}>
       <button
         type="button"
-        className={`avatar${nickname ? ' avatar-in' : ''}`}
+        className={`avatar${loggedIn ? ' avatar-in' : ''}`}
         aria-label="계정"
         onClick={() => setOpen((v) => !v)}
       >
-        {nickname ? nickname.charAt(0).toUpperCase() : ''}
+        {loggedIn ? displayName.charAt(0).toUpperCase() : ''}
+        {loggedIn && <span className="avatar-dot" />}
       </button>
       {open && (
         <div className="login-dropdown">
           <div className="login-brand">
             <span className="login-brand-mark">💙</span> 부락지
           </div>
-          {nickname ? (
+          {loggedIn ? (
             <div className="profile-card">
               <div className="profile-avatar">
-                {nickname.charAt(0).toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
               </div>
-              <div className="profile-name">{nickname} 님</div>
+              <div className="profile-name">{displayName} 님</div>
               <div className="profile-badge">● 로그인됨</div>
               <div className="login-sub profile-sub">
                 타이머·화면 설정이 이 계정에 저장·동기화됩니다.
@@ -305,6 +309,7 @@ function NormalScreen({
   now,
   triggerAt,
   screen,
+  loggedIn,
   nickname,
   onSetTrigger,
   onSetScreen,
@@ -314,6 +319,7 @@ function NormalScreen({
   now: Date
   triggerAt: Date
   screen: ScreenType
+  loggedIn: boolean
   nickname: string | null
   onSetTrigger: (v: string) => void
   onSetScreen: (v: ScreenType) => void
@@ -338,7 +344,12 @@ function NormalScreen({
             d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"
           />
         </svg>
-        <LoginMenu nickname={nickname} onAuth={onAuth} onLogout={onLogout} />
+        <LoginMenu
+          loggedIn={loggedIn}
+          nickname={nickname}
+          onAuth={onAuth}
+          onLogout={onLogout}
+        />
       </header>
 
       <div className="google-center">
@@ -676,6 +687,7 @@ function App() {
       now={now}
       triggerAt={triggerAt}
       screen={screen}
+      loggedIn={!!token}
       nickname={nickname}
       onSetTrigger={handleSetTrigger}
       onSetScreen={handleSetScreen}
